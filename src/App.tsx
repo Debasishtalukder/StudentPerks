@@ -90,7 +90,7 @@ export default function App() {
     cards.forEach((card, i) => {
       const el = card as HTMLElement;
       el.classList.remove('visible');
-      el.style.transitionDelay = `${i * 70}ms`;
+      el.style.transitionDelay = `${i * 40}ms`;
       void el.offsetWidth; // force reflow
       observer.observe(el);
     });
