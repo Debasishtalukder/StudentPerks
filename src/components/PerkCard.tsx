@@ -39,9 +39,11 @@ const PerkCard: React.FC<PerkCardProps> = ({ perk }) => {
   };
 
   return (
-    <div
+    <motion.div
+      whileHover={{ scale: 1.02, filter: "brightness(1.05)" }}
+      transition={{ duration: 0.3 }}
       onClick={() => window.open(perk.url, '_blank', 'noopener,noreferrer')}
-      className="perk-card bg-white rounded-2xl p-6 border border-transparent hover:border-[#2563EB]/20 transition-all duration-300 relative group shadow-[0_32px_64px_-12px_rgba(28,27,27,0.04)] overflow-hidden cursor-pointer"
+      className="perk-card bg-white rounded-2xl p-6 border border-transparent hover:border-[#2563EB]/20 border-l-[3px] border-l-transparent hover:border-l-[#2563EB] transition-all duration-300 relative group shadow-[0_32px_64px_-12px_rgba(28,27,27,0.04)] overflow-hidden cursor-pointer"
     >
       {perk.featured && (
         <div className="absolute top-0 right-0 bg-[#FFDDB8] text-[#653E00] px-3 py-1.5 rounded-bl-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm z-10 border-l border-b border-orange-200/50">
@@ -84,7 +86,7 @@ const PerkCard: React.FC<PerkCardProps> = ({ perk }) => {
       <div className="inline-flex items-center text-[#004AC6] font-black text-sm transition-all">
         Get Offer <ArrowRight size={16} className="ml-1 transition-transform duration-300 ease-out group-hover:translate-x-1" />
       </div>
-    </div>
+    </motion.div>
   );
 };
 
