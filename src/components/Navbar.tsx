@@ -11,12 +11,14 @@ interface NavbarProps {
 
 export default function Navbar({ darkMode, setDarkMode, onStartHere, onSubmitPerk }: NavbarProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const onScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
+      setScrolled(scrollTop > 20);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -28,10 +30,10 @@ export default function Navbar({ darkMode, setDarkMode, onStartHere, onSubmitPer
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
 
       <nav
-        className="fixed top-0 w-full z-50 backdrop-blur-xl border-b transition-colors duration-300"
+        className={`fixed top-0 w-full z-50 backdrop-blur-xl border-b transition-all duration-300 ${scrolled ? "navbar-scrolled" : ""}`}
         style={{ backgroundColor: "var(--navbar-bg)", borderColor: "var(--outline)" }}
       >
-        <div className="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+        <div className="flex justify-between items-center responsive-px py-4 w-full">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="StudentPerks" width={32} height={32} className="w-8 h-8" />
             <span className="text-xl font-bold tracking-tight" style={{ color: "var(--on-surface)" }}>

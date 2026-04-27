@@ -317,8 +317,6 @@ export default function App() {
     setOfferToast("Link copied! Share with friends ✓");
   }, []);
 
-  const gridCols = viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1";
-
   return (
     <div className="min-h-screen transition-colors duration-300" style={{ background: "var(--bg)" }}>
       <Navbar darkMode={darkMode} setDarkMode={setDarkMode} onStartHere={() => setStartHereOpen(true)} onSubmitPerk={() => setSubmitPerkOpen(true)} />
@@ -337,15 +335,15 @@ export default function App() {
           savedCount={savedIds.size}
         />
 
-        <main className="max-w-7xl mx-auto px-6 py-12">
+        <main className="w-full responsive-px py-12">
           {initialLoad ? (
             /* Initial skeleton on first page load */
-            <div className={`grid gap-8 ${gridCols}`}>
-              {[...Array(viewMode === "grid" ? 12 : 6)].map((_, i) => <SkeletonCard key={i} />)}
+            <div className="card-grid">
+              {[...Array(12)].map((_, i) => <SkeletonCard key={i} />)}
             </div>
           ) : (
             <div className={`perk-grid ${gridPhase === "exiting" ? "perk-grid--exiting" : "perk-grid--entering"}`}>
-              <div className={`grid gap-8 ${gridCols}`}>
+              <div className="card-grid">
                 {filteredPerks.map((perk, i) => {
                   const isAboveFold = i < PRELOAD_COUNT;
                   const isNear = isAboveFold || nearIds.has(perk.id);
