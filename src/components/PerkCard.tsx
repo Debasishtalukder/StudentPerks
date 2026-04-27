@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowRight, Star, Banknote, GraduationCap, ShieldCheck, Github, Fingerprint, Sparkles, Globe, Clock, Bookmark, Share2, ThumbsUp, BadgeCheck, Scale } from "lucide-react";
+import { ArrowRight, Star, ShieldCheck, GraduationCap, Github, Fingerprint, Sparkles, Globe, Clock, Bookmark, Share2, ThumbsUp, BadgeCheck, Scale } from "lucide-react";
 import { Perk, COUNTRIES } from "../data/perks";
 import LogoImage from "./LogoImage";
 
@@ -22,22 +22,36 @@ interface PerkCardProps {
   canCompare: boolean;
 }
 
-const BADGE_MAP: Record<string, { bg: string; text: string; border: string; iconColor: string; icon: React.ReactNode; label: string }> = {
-  "Any Student": { bg: "bg-[#16A34A]/10", text: "text-[#15803D]", border: "border-[#16A34A]/20", iconColor: "text-[#16A34A]", icon: <ShieldCheck size={14} />, label: "Any Student" },
-  "University Only": { bg: "bg-[#F59E0B]/10", text: "text-[#B45309]", border: "border-[#F59E0B]/20", iconColor: "text-[#F59E0B]", icon: <GraduationCap size={14} />, label: "University Only" },
-  "GitHub Pack": { bg: "bg-[#6E40C9]/10", text: "text-[#5B21B6]", border: "border-[#6E40C9]/20", iconColor: "text-[#6E40C9]", icon: <Github size={14} />, label: "GitHub Pack" },
-  "SheerID": { bg: "bg-[#EC4899]/10", text: "text-[#BE185D]", border: "border-[#EC4899]/20", iconColor: "text-[#EC4899]", icon: <Fingerprint size={14} />, label: "SheerID" },
-  "UNiDAYS": { bg: "bg-[#8B5CF6]/10", text: "text-[#6D28D9]", border: "border-[#8B5CF6]/20", iconColor: "text-[#8B5CF6]", icon: <Sparkles size={14} />, label: "UNiDAYS" },
-  "Student Beans": { bg: "bg-[#06B6D4]/10", text: "text-[#0E7490]", border: "border-[#06B6D4]/20", iconColor: "text-[#06B6D4]", icon: <Sparkles size={14} />, label: "Student Beans" },
-  "Age Restricted": { bg: "bg-[#F97316]/10", text: "text-[#C2410C]", border: "border-[#F97316]/20", iconColor: "text-[#F97316]", icon: <Clock size={14} />, label: "Age Restricted" },
-  "US Only": { bg: "bg-[#3B82F6]/10", text: "text-[#1D4ED8]", border: "border-[#3B82F6]/20", iconColor: "text-[#3B82F6]", icon: <Globe size={14} />, label: "US Only" },
+const ELIG_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
+  "Any Student": { icon: <ShieldCheck size={12} />, color: "#16A34A" },
+  "University Only": { icon: <GraduationCap size={12} />, color: "#D97706" },
+  "GitHub Pack": { icon: <Github size={12} />, color: "#6E40C9" },
+  "SheerID": { icon: <Fingerprint size={12} />, color: "#DB2777" },
+  "UNiDAYS": { icon: <Sparkles size={12} />, color: "#7C3AED" },
+  "Student Beans": { icon: <Sparkles size={12} />, color: "#0891B2" },
+  "Age Restricted": { icon: <Clock size={12} />, color: "#EA580C" },
+  "US Only": { icon: <Globe size={12} />, color: "#2563EB" },
 };
 
+// Extract dollar value from savings string
+function extractValue(savings: string): string {
+  const match = savings.match(/\$[\d,]+/);
+  return match ? match[0] + "/yr" : "Free";
+}
+
+function getOfferType(savings: string): string {
+  const lower = savings.toLowerCase();
+  if (lower.includes("free") || lower.includes("100%")) return "Free";
+  if (lower.includes("off") || lower.includes("discount")) return "Discount";
+  if (lower.includes("credit")) return "Credits";
+  return "Free";
+}
+
 const PerkCard: React.FC<PerkCardProps> = ({ perk, index, isVisible, isClaimed, onClaim, votes, hasVoted, onVote, onShare, onOfferClick, isTrending, isSaved, onToggleSaved, isComparing, onToggleCompare, canCompare }) => {
-  const countryFlags = perk.countries.map((code) => COUNTRIES.find((c) => c.code === code)?.flag).filter(Boolean).slice(0, 3);
-  const badge = BADGE_MAP[perk.eligibility] || BADGE_MAP["Any Student"];
-  // Cap stagger at 400ms so cards far down the list don't wait forever
   const staggerDelay = Math.min(index * 50, 400);
+  const elig = ELIG_ICONS[perk.eligibility] || ELIG_ICONS["Any Student"];
+  const value = extractValue(perk.savings);
+  const offerType = getOfferType(perk.savings);
 
   return (
     <div
@@ -45,146 +59,135 @@ const PerkCard: React.FC<PerkCardProps> = ({ perk, index, isVisible, isClaimed, 
       style={{ transitionDelay: `${staggerDelay}ms` }}
       id={`perk-${perk.id}`}
     >
-      {/* Top-right badges */}
-      <div className="absolute top-0 right-0 flex items-center z-10">
-        {perk.expiringSoon && (
-          <span className="bg-orange-500 text-white px-2.5 py-1 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-            ⏰ Expiring Soon
+      {/* ─── Top-left badges ─── */}
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+        {perk.featured && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#f59e0b] text-white shadow-sm">
+            <Star size={10} fill="currentColor" /> Featured
           </span>
         )}
-        {isTrending && !perk.expiringSoon && (
-          <span className="bg-[#FF6B35] text-white px-2.5 py-1 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+        {perk.isNew && !perk.featured && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-sm">
+            <span className="new-badge-dot" style={{ background: "#fff" }} /> NEW
+          </span>
+        )}
+        {isTrending && !perk.featured && !perk.isNew && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FF6B35] text-white shadow-sm">
             🔥 Trending
           </span>
         )}
-        {perk.featured && !perk.expiringSoon && !isTrending && (
-          <span className="bg-[#FFDDB8] text-[#653E00] px-2.5 py-1.5 rounded-bl-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border-l border-b border-orange-200/50">
-            <Star size={12} fill="currentColor" /> Featured
-          </span>
-        )}
-        {perk.isNew && !perk.featured && !perk.expiringSoon && !isTrending && (
-          <span className="bg-[#DCFCE7] text-[#166534] px-2.5 py-1.5 rounded-bl-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border-l border-b border-green-200/50">
-            <span className="new-badge-dot mr-0.5" /> NEW
+        {perk.expiringSoon && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-orange-500 text-white shadow-sm">
+            ⏰ Expiring
           </span>
         )}
       </div>
 
-      {/* Action buttons row */}
-      <div className="absolute top-2 left-2 flex items-center gap-1 z-10">
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleSaved(perk.id); }}
-          className="w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
-          style={{
-            background: isSaved ? "#7CF994" : "var(--bg-secondary)",
-            color: isSaved ? "#002109" : "var(--on-surface-variant)",
-          }}
-          title={isSaved ? "Saved!" : "Save this perk"}
-        >
-          <Bookmark size={12} fill={isSaved ? "currentColor" : "none"} />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onShare(perk); }}
-          className="w-7 h-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
-          style={{ background: "var(--bg-secondary)", color: "var(--on-surface-variant)" }}
-          title="Share this perk"
-        >
-          <Share2 size={12} />
-        </button>
-      </div>
+      {/* ─── Top-right: share button ─── */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onShare(perk); }}
+        className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all hover:scale-110 hover:shadow-md"
+        style={{ background: "rgba(255,255,255,0.8)", color: "#666", backdropFilter: "blur(4px)" }}
+        title="Share"
+      >
+        <Share2 size={13} />
+      </button>
 
-      {/* Logo */}
-      <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-2xl p-3 shadow-inner overflow-hidden" style={{ background: "var(--bg-secondary)" }}>
-        <LogoImage domain={perk.domain} name={perk.company} className="w-full h-full perk-card__logo" eager={index < 8} />
-      </div>
-
-      {/* Eligibility + Verified */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <div className={`${badge.bg} ${badge.text} px-3 py-1 rounded-full text-[13px] font-bold flex items-center gap-1.5 border ${badge.border}`}>
-          <span className={badge.iconColor}>{badge.icon}</span> {badge.label}
+      {/* ─── Logo ─── */}
+      <div className="flex justify-center mt-6 mb-4">
+        <div className="w-[52px] h-[52px] rounded-full bg-white flex items-center justify-center shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden p-2.5">
+          <LogoImage domain={perk.domain} name={perk.company} className="w-full h-full perk-card__logo" eager={index < 8} />
         </div>
-        {perk.verified && (
-          <div className="group/verified relative">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50">
-              <BadgeCheck size={11} /> Verified 2026
+      </div>
+
+      {/* ─── Name + Category + Verified ─── */}
+      <div className="text-center mb-3 px-2">
+        <h3 className="font-bold text-[17px] leading-tight mb-1.5" style={{ color: "#1a1a1a" }}>{perk.title}</h3>
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--primary)" }}>
+            {perk.category}
+          </span>
+          {perk.verified && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600">
+              <BadgeCheck size={10} /> 2026
             </span>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg text-[11px] font-medium text-white bg-[#1C1B1B] whitespace-nowrap opacity-0 group-hover/verified:opacity-100 transition-opacity pointer-events-none shadow-lg">
-              We verified this offer is active as of 2026
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Category + flags */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-tight" style={{ background: "var(--bg-secondary)", color: "var(--primary)" }}>
-          {perk.category}
-        </span>
-        <span className="text-xs flex gap-1">{countryFlags.join(" ")}{perk.countries.length > 3 && "🌍"}</span>
-      </div>
-
-      <h3 className="font-bold text-xl leading-tight mb-2" style={{ color: "var(--on-surface)" }}>{perk.title}</h3>
-      <p className="text-sm mb-5 font-medium leading-relaxed line-clamp-3" style={{ color: "var(--on-surface-variant)" }}>
+      {/* ─── Description ─── */}
+      <p className="text-[13px] leading-relaxed text-center mb-4 px-3 line-clamp-2" style={{ color: "#666" }}>
         {perk.description}
       </p>
 
-      {/* Savings */}
-      <div className="mb-4">
-        <div className="px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5" style={{ background: "var(--savings-bg)", color: "#002109" }}>
-          <Banknote size={16} className="text-emerald-600 shrink-0" />
-          <span className="truncate">{perk.savings}</span>
+      {/* ─── Stats row (3 columns with dividers) ─── */}
+      <div className="flex items-center mx-3 mb-4 rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.02)" }}>
+        <div className="flex-1 py-2.5 text-center">
+          <div className="flex items-center justify-center gap-1 mb-0.5">
+            <span style={{ color: elig.color }}>{elig.icon}</span>
+          </div>
+          <p className="text-[10px] font-semibold" style={{ color: "#555" }}>{perk.eligibility}</p>
+        </div>
+        <div className="w-px h-8" style={{ background: "rgba(0,0,0,0.08)" }} />
+        <div className="flex-1 py-2.5 text-center">
+          <p className="text-sm font-black text-emerald-600">{value}</p>
+          <p className="text-[10px] font-medium" style={{ color: "#888" }}>Value</p>
+        </div>
+        <div className="w-px h-8" style={{ background: "rgba(0,0,0,0.08)" }} />
+        <div className="flex-1 py-2.5 text-center">
+          <p className="text-xs font-bold" style={{ color: "#333" }}>{offerType}</p>
+          <p className="text-[10px] font-medium" style={{ color: "#888" }}>Type</p>
         </div>
       </div>
 
-      {/* Bottom actions */}
-      <div className="flex items-center justify-between mt-auto">
+      {/* ─── Bottom row: Get Offer + Bookmark ─── */}
+      <div className="flex items-center gap-2 px-3 pb-1 mt-auto">
         <button
           onClick={(e) => { e.stopPropagation(); onOfferClick(perk); }}
-          className="perk-card__cta inline-flex items-center font-black text-sm"
+          className="perk-card__cta flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all hover:bg-black/10"
+          style={{ background: "rgba(0,0,0,0.05)", color: "#1a1a1a" }}
         >
-          Get Offer <ArrowRight size={16} className="ml-1 perk-card__arrow" />
+          Get Offer <ArrowRight size={14} className="perk-card__arrow" />
         </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleSaved(perk.id); }}
+          className="w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-105 shrink-0"
+          style={{
+            background: isSaved ? "#DCFCE7" : "white",
+            border: isSaved ? "1.5px solid #86EFAC" : "1.5px solid rgba(0,0,0,0.08)",
+            color: isSaved ? "#16A34A" : "#999",
+          }}
+          title={isSaved ? "Saved!" : "Save"}
+        >
+          <Bookmark size={15} fill={isSaved ? "currentColor" : "none"} />
+        </button>
+      </div>
 
-        <div className="flex items-center gap-2">
-          {/* Upvote */}
-          <button
-            onClick={(e) => { e.stopPropagation(); onVote(perk.id); }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
-            style={{
-              background: hasVoted ? "rgba(37,99,235,0.1)" : "var(--bg-secondary)",
-              color: hasVoted ? "var(--primary)" : "var(--on-surface-variant)",
-            }}
-          >
-            <ThumbsUp size={12} fill={hasVoted ? "currentColor" : "none"} />
-            {votes > 0 && <span>{votes}</span>}
-          </button>
-
-          {/* Claim */}
-          <button
-            onClick={(e) => { e.stopPropagation(); onClaim(perk.id); }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
-            style={{
-              background: isClaimed ? "rgba(124,249,148,0.2)" : "var(--bg-secondary)",
-              color: isClaimed ? "#15803D" : "var(--on-surface-variant)",
-            }}
-            title={isClaimed ? "Claimed!" : "Mark as claimed"}
-          >
-            {isClaimed ? "✓ Claimed" : "Claim"}
-          </button>
-
-          {/* Compare */}
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggleCompare(perk.id); }}
-            disabled={!canCompare && !isComparing}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105 disabled:opacity-30 disabled:hover:scale-100"
-            style={{
-              background: isComparing ? "rgba(37,99,235,0.15)" : "var(--bg-secondary)",
-              color: isComparing ? "var(--primary)" : "var(--on-surface-variant)",
-            }}
-            title={isComparing ? "Remove from comparison" : canCompare ? "Add to compare" : "Max 3 tools"}
-          >
-            <Scale size={11} />
-          </button>
-        </div>
+      {/* ─── Micro actions row (upvote, claim, compare) ─── */}
+      <div className="flex items-center justify-center gap-3 px-3 pt-2 pb-3">
+        <button
+          onClick={(e) => { e.stopPropagation(); onVote(perk.id); }}
+          className="flex items-center gap-1 text-[11px] font-semibold transition-all hover:opacity-70"
+          style={{ color: hasVoted ? "var(--primary)" : "#aaa" }}
+        >
+          <ThumbsUp size={11} fill={hasVoted ? "currentColor" : "none"} />
+          {votes > 0 && votes}
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onClaim(perk.id); }}
+          className="text-[11px] font-semibold transition-all hover:opacity-70"
+          style={{ color: isClaimed ? "#16A34A" : "#aaa" }}
+        >
+          {isClaimed ? "✓ Claimed" : "Claim"}
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleCompare(perk.id); }}
+          disabled={!canCompare && !isComparing}
+          className="flex items-center gap-0.5 text-[11px] font-semibold transition-all hover:opacity-70 disabled:opacity-30"
+          style={{ color: isComparing ? "var(--primary)" : "#aaa" }}
+        >
+          <Scale size={10} /> Compare
+        </button>
       </div>
     </div>
   );
