@@ -126,7 +126,7 @@ function CardPlaceholder() {
 
 // ─── Offer Toast ───
 function OfferToast({ message, onDone }: { message: string; onDone: () => void }) {
-  useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);
+  useEffect(() => { const t = setTimeout(onDone, 4000); return () => clearTimeout(t); }, [onDone]);
   return (
     <div className="fixed bottom-6 right-6 z-[100] offer-toast">
       <div className="px-5 py-3 rounded-2xl shadow-2xl border flex items-center gap-3 bg-emerald-50 border-emerald-200 text-emerald-800">
@@ -474,7 +474,7 @@ export default function App() {
       <CompareBar compareIds={compareIds} onRemove={(id) => setCompareIds((p) => p.filter((x) => x !== id))} onClear={() => setCompareIds([])} onCompare={() => setCompareModalOpen(true)} />
       <CompareModal isOpen={compareModalOpen} onClose={() => setCompareModalOpen(false)} compareIds={compareIds} />
       <StartHereModal isOpen={startHereOpen} onClose={() => setStartHereOpen(false)} />
-      <SubmitPerkModal isOpen={submitPerkOpen} onClose={() => setSubmitPerkOpen(false)} />
+      <SubmitPerkModal isOpen={submitPerkOpen} onClose={() => setSubmitPerkOpen(false)} onSuccess={() => setOfferToast("✅ Perk submitted! We'll review and add it soon.")} />
 
       <AnimatePresence>
         {showScrollTop && (
