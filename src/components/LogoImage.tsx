@@ -4,6 +4,7 @@ interface LogoImageProps {
   domain: string;
   name?: string;
   className?: string;
+  eager?: boolean;
 }
 
 const getFallbackColor = (name: string) => {
@@ -17,7 +18,7 @@ const getFallbackColor = (name: string) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
-const LogoImage: React.FC<LogoImageProps> = ({ domain, name, className }) => {
+const LogoImage: React.FC<LogoImageProps> = ({ domain, name, className, eager }) => {
   const [logoSource, setLogoSource] = React.useState<string>(`https://logo.clearbit.com/${domain}?size=128`);
   const [fallbackIndex, setFallbackIndex] = React.useState(0);
   const [logoError, setLogoError] = React.useState(false);
@@ -27,7 +28,6 @@ const LogoImage: React.FC<LogoImageProps> = ({ domain, name, className }) => {
       `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
       `https://ui-avatars.com/api/?name=${name || domain}&background=random&color=fff&size=128`
     ];
-    
     if (fallbackIndex < fallbacks.length) {
       setLogoSource(fallbacks[fallbackIndex]);
       setFallbackIndex(prev => prev + 1);
@@ -38,7 +38,7 @@ const LogoImage: React.FC<LogoImageProps> = ({ domain, name, className }) => {
 
   if (logoError) {
     return (
-      <div 
+      <div
         className={`flex items-center justify-center text-white font-bold rounded-lg ${className}`}
         style={{ backgroundColor: getFallbackColor(name || domain) }}
       >
@@ -48,14 +48,16 @@ const LogoImage: React.FC<LogoImageProps> = ({ domain, name, className }) => {
   }
 
   return (
-    <img 
-      src={logoSource} 
-      alt={name || domain} 
-      className={`object-contain ${className}`} 
+    <img
+      src={logoSource}
+      alt={name || domain}
+      className={`object-contain ${className}`}
       referrerPolicy="no-referrer"
+      loading={eager ? "eager" : "lazy"}
+      decoding="async"
       onError={handleLogoError}
     />
   );
 };
 
-export default LogoImage;
+export default React.memo(LogoImage);

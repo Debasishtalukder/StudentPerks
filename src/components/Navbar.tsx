@@ -1,39 +1,92 @@
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Moon, Sun } from "lucide-react";
 
-export default function Navbar() {
+interface NavbarProps {
+  darkMode: boolean;
+  setDarkMode: (v: boolean) => void;
+  onStartHere: () => void;
+  onSubmitPerk: () => void;
+}
+
+export default function Navbar({ darkMode, setDarkMode, onStartHere, onSubmitPerk }: NavbarProps) {
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 w-full z-50 bg-[#FCF9F8]/80 backdrop-blur-xl border-b border-black/5">
-      <div className="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="grid grid-cols-2 gap-1 w-6 h-6 items-center justify-center">
-            <div className="w-[10px] h-[10px] bg-[#2563EB] rounded-full"></div>
-            <div className="w-[6px] h-[6px] bg-[#2563EB] rounded-full justify-self-center"></div>
-            <div className="w-[6px] h-[6px] bg-[#2563EB] rounded-full justify-self-center"></div>
-            <div className="w-[10px] h-[10px] bg-[#111111] rounded-full"></div>
-          </div>
-          <span className="text-xl font-bold tracking-tight text-[#1C1B1B]">
-            StudentPerks<span className="text-[#2563EB]">.io</span>
-          </span>
-        </div>
+    <>
+      {/* Scroll Progress Bar */}
+      <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
 
-        <div className="flex items-center gap-6">
-          <a 
-            href="#" 
-            className="hidden md:block text-sm font-semibold text-[#434655] hover:text-[#004AC6] transition-colors"
-          >
-            Submit a Deal
-          </a>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#7CF994] text-[#002109] rounded-full text-xs font-bold tracking-wide shadow-sm"
-          >
-            <GraduationCap size={16} />
-            FOR STUDENTS
-          </motion.button>
+      <nav
+        className="fixed top-0 w-full z-50 backdrop-blur-xl border-b transition-colors duration-300"
+        style={{ backgroundColor: "var(--navbar-bg)", borderColor: "var(--outline)" }}
+      >
+        <div className="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="StudentPerks" width={32} height={32} className="w-8 h-8" />
+            <span className="text-xl font-bold tracking-tight" style={{ color: "var(--on-surface)" }}>
+              StudentPerks<span style={{ color: "var(--primary-container)" }}>.fun</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onStartHere}
+              className="hidden md:flex items-center gap-1.5 text-sm font-bold transition-colors hover:opacity-80"
+              style={{ color: "var(--primary)" }}
+            >
+              Start Here 🚀
+            </button>
+            <a
+              href="/blog"
+              className="hidden md:block text-sm font-semibold transition-colors hover:opacity-80"
+              style={{ color: "var(--on-surface-variant)" }}
+            >
+              Blog
+            </a>
+            <button
+              onClick={onSubmitPerk}
+              className="hidden md:block text-sm font-semibold transition-colors hover:opacity-80 cursor-pointer"
+              style={{ color: "var(--on-surface-variant)" }}
+            >
+              Submit a Deal
+            </button>
+
+            {/* Dark mode toggle */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+              style={{ background: "var(--bg-secondary)" }}
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {darkMode ? (
+                <Sun size={16} style={{ color: "var(--on-surface)" }} />
+              ) : (
+                <Moon size={16} style={{ color: "var(--on-surface-variant)" }} />
+              )}
+            </button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#7CF994] text-[#002109] rounded-full text-xs font-bold tracking-wide shadow-sm"
+            >
+              <GraduationCap size={16} />
+              FOR STUDENTS
+            </motion.button>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }

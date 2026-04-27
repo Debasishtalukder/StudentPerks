@@ -6,21 +6,62 @@
   --font-dm-sans: "DM Sans", sans-serif;
 }
 
+/* ========================
+   Light / Dark CSS variables
+   ======================== */
 :root {
   --bg: #FCF9F8;
+  --bg-secondary: #F6F3F2;
   --surface: #FFFFFF;
+  --surface-hover: #FAFAFA;
   --primary: #004AC6;
   --primary-container: #2563EB;
   --on-surface: #1C1B1B;
   --on-surface-variant: #434655;
+  --outline: #E5E5E5;
   --outline-variant: #C3C6D7;
+  --card-shadow: 0 32px 64px -12px rgba(28, 27, 27, 0.04);
+  --card-hover-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --skeleton-from: #f0eded;
+  --skeleton-mid: #e8e4e3;
+  --dot-color: #E5E2E1;
+  --filter-bg: #EBE7E7;
+  --savings-bg: rgba(124, 249, 148, 0.2);
+  --navbar-bg: rgba(252, 249, 248, 0.8);
+  --footer-bg: #020617;
 }
 
+.dark {
+  --bg: #0F1117;
+  --bg-secondary: #1A1D27;
+  --surface: #1E2130;
+  --surface-hover: #252838;
+  --primary: #60A5FA;
+  --primary-container: #3B82F6;
+  --on-surface: #E8E6E3;
+  --on-surface-variant: #9CA3AF;
+  --outline: #2D3348;
+  --outline-variant: #374151;
+  --card-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.3);
+  --card-hover-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --skeleton-from: #1E2130;
+  --skeleton-mid: #252838;
+  --dot-color: #1A1D27;
+  --filter-bg: #252838;
+  --savings-bg: rgba(124, 249, 148, 0.1);
+  --navbar-bg: rgba(15, 17, 23, 0.85);
+  --footer-bg: #080A10;
+}
+
+/* ========================
+   Base
+   ======================== */
 body {
   font-family: var(--font-dm-sans);
   background-color: var(--bg);
   color: var(--on-surface);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, .font-headline {
@@ -28,18 +69,30 @@ h1, h2, h3, .font-headline {
 }
 
 .dot-grid {
-  background-image: radial-gradient(circle, #E5E2E1 1.5px, transparent 1.5px);
+  background-image: radial-gradient(circle, var(--dot-color) 1.5px, transparent 1.5px);
   background-size: 24px 24px;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ========================
+   Scroll Progress Bar
+   ======================== */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: #7CF994;
+  z-index: 9999;
+  transition: width 0.05s linear;
+  border-radius: 0 2px 2px 0;
 }
 
+/* ========================
+   Marquee
+   ======================== */
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -59,30 +112,147 @@ h1, h2, h3, .font-headline {
   will-change: transform;
 }
 
-.marquee-track:hover {
-  animation-play-state: paused;
+.marquee-track:hover { animation-play-state: paused; }
+
+/* ========================
+   Skeleton Shimmer
+   ======================== */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
 }
 
+.skeleton {
+  background: linear-gradient(90deg, var(--skeleton-from) 0%, var(--skeleton-mid) 40%, var(--skeleton-from) 80%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+/* ========================
+   Card Grid — filter transition wrapper
+   ======================== */
+.perk-grid {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.perk-grid--exiting { opacity: 0; transform: scale(0.97); }
+.perk-grid--entering { opacity: 1; transform: scale(1); }
+
+/* ========================
+   Perk Card — base
+   ======================== */
 .perk-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid transparent;
+  border-left: 3px solid transparent;
+  box-shadow: var(--card-shadow);
   opacity: 0;
-  transform: translateY(32px) scale(0.98);
-  transition: 
+  transform: translateY(24px) scale(0.97);
+  transition:
     opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.2s ease,
     border-color 0.2s ease,
-    border-left 0.2s ease,
-    filter 0.2s ease;
+    border-left-color 0.2s ease,
+    background-color 0.3s ease;
 }
 
-.perk-card.visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+.perk-card--visible { opacity: 1; transform: translateY(0) scale(1); }
+
+.perk-card--visible:hover {
+  transform: translateY(-4px) scale(1);
+  box-shadow: var(--card-hover-shadow);
+  border-color: rgba(37, 99, 235, 0.15);
+  border-left-color: var(--primary-container);
 }
 
-.perk-card:hover {
-  transform: translateY(-8px) scale(1.02) !important;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.1) !important;
-  border-left: 3px solid #2563EB !important;
-  filter: brightness(1.03);
+.perk-card__logo { transition: transform 0.3s ease; }
+.perk-card:hover .perk-card__logo { transform: scale(1.1); }
+
+.perk-card__cta { color: var(--primary); transition: color 0.2s ease; }
+.perk-card:hover .perk-card__cta { color: var(--primary-container); }
+
+.perk-card__arrow { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.perk-card:hover .perk-card__arrow { transform: translateX(4px); }
+
+/* Featured card — gold accent */
+.perk-card--featured {
+  border-color: rgba(245, 158, 11, 0.2);
+  box-shadow: var(--card-shadow), 0 0 0 1px rgba(245, 158, 11, 0.08);
+}
+.perk-card--featured.perk-card--visible:hover {
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: var(--card-hover-shadow), 0 0 20px rgba(245, 158, 11, 0.08);
+}
+
+/* ========================
+   List View Card
+   ======================== */
+.perk-card--list {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 24px;
+  border-radius: 14px;
+}
+
+.perk-card--list .perk-card__logo-wrap {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.perk-card--list .perk-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.perk-card--list .perk-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ========================
+   NEW badge pulse
+   ======================== */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+.new-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22C55E;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ========================
+   Offer Toast
+   ======================== */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(16px); }
+}
+
+.offer-toast {
+  animation: toast-in 0.3s ease forwards;
+}
+.offer-toast--exit {
+  animation: toast-out 0.3s ease forwards;
 }
