@@ -21,57 +21,59 @@ interface FilterBarProps {
 function CountUp({ value }: { value: number }) {
   const [displayValue, setDisplayValue] = useState(value);
   useEffect(() => {
-    const controls = animate(displayValue, value, {
-      duration: 0.5,
-      onUpdate: (latest) => setDisplayValue(Math.floor(latest)),
-    });
+    const controls = animate(displayValue, value, { duration: 0.5, onUpdate: (latest) => setDisplayValue(Math.floor(latest)) });
     return () => controls.stop();
   }, [value]);
   return <>{displayValue}</>;
 }
 
 const SPECIAL_FILTERS = [
-  { id: "new", label: "New This Week", icon: <Sparkles size={13} />, color: "#16A34A" },
-  { id: "expiring", label: "Expiring Soon", icon: <Clock size={13} />, color: "#F97316" },
-  { id: "saved", label: "Saved", icon: <Bookmark size={13} />, color: "#2563EB" },
+  { id: "new", label: "New This Week", icon: <Sparkles size={14} /> },
+  { id: "expiring", label: "Expiring Soon", icon: <Clock size={14} /> },
+  { id: "saved", label: "Saved", icon: <Bookmark size={14} /> },
 ];
 
 export default function FilterBar({
   selectedCountry, setSelectedCountry,
   selectedCategories, setSelectedCategories,
-  totalCount,
-  searchQuery, setSearchQuery,
+  totalCount, searchQuery, setSearchQuery,
   viewMode, setViewMode,
-  specialFilter, setSpecialFilter,
-  savedCount,
+  specialFilter, setSpecialFilter, savedCount,
 }: FilterBarProps) {
   const [countrySearch, setCountrySearch] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const currentCountry = COUNTRIES.find((c) => c.code === selectedCountry) || COUNTRIES[0];
 
   const filteredCountries = COUNTRIES.filter((c) =>
     c.name.toLowerCase().includes(countrySearch.toLowerCase())
   );
 
+  // Check scroll overflow for fade indicators
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      setCanScrollLeft(el.scrollLeft > 4);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+    };
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => { el.removeEventListener("scroll", check); window.removeEventListener("resize", check); };
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
-
-      if (e.key === "/" && !isInput) {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-      if (e.key === "Escape") {
-        if (searchQuery) { setSearchQuery(""); }
-        searchRef.current?.blur();
-      }
-      if (e.key === "g" && !isInput) {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      if (e.key === "/" && !isInput) { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === "Escape") { if (searchQuery) setSearchQuery(""); searchRef.current?.blur(); }
+      if (e.key === "g" && !isInput) { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -80,54 +82,49 @@ export default function FilterBar({
   const handleCategoryToggle = (cat: string) => {
     setSpecialFilter(null);
     if (cat === "All") { setSelectedCategories(["All"]); return; }
-    let newCategories = [...selectedCategories];
-    if (newCategories.includes("All")) { newCategories = [cat]; }
-    else if (newCategories.includes(cat)) { newCategories = newCategories.filter((c) => c !== cat); }
-    else { newCategories.push(cat); }
-    if (newCategories.length === 0) newCategories = ["All"];
-    setSelectedCategories(newCategories);
+    let nc = [...selectedCategories];
+    if (nc.includes("All")) nc = [cat];
+    else if (nc.includes(cat)) nc = nc.filter((c) => c !== cat);
+    else nc.push(cat);
+    if (nc.length === 0) nc = ["All"];
+    setSelectedCategories(nc);
   };
 
   const handleSpecialFilter = (id: string) => {
-    if (specialFilter === id) {
-      setSpecialFilter(null);
-    } else {
-      setSpecialFilter(id);
-      setSelectedCategories(["All"]);
-    }
+    if (specialFilter === id) setSpecialFilter(null);
+    else { setSpecialFilter(id); setSelectedCategories(["All"]); }
   };
 
   return (
     <div
-      className="sticky top-[72px] z-40 py-4 flex flex-col gap-4 border-b transition-colors duration-300"
+      className="sticky top-[72px] z-40 pt-4 pb-4 flex flex-col gap-4 border-b transition-colors duration-300"
       style={{ backgroundColor: "var(--bg)", borderColor: "var(--outline)" }}
     >
       {/* Row 1: Country + Search + View Toggle */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto w-full px-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 responsive-px">
+        {/* Country picker */}
         <div className="relative shrink-0">
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-4 px-6 py-2.5 rounded-full border-[1.5px] transition-all shadow-[0_2px_4px_rgba(0,0,0,0.02)] group"
-            style={{ background: "var(--surface)", borderColor: "var(--outline)", color: "var(--on-surface)" }}
-          >
-            <span className="text-[20px] leading-none">{currentCountry.flag}</span>
-            <span className="text-sm font-medium font-dm-sans">{currentCountry.name}</span>
-            <ChevronDown size={18} className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} style={{ color: "var(--on-surface-variant)" }} />
+          <button onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-3 px-5 py-2.5 rounded-[24px] border-[1.5px] transition-all"
+            style={{ background: "var(--surface)", borderColor: "var(--outline)", color: "var(--on-surface)" }}>
+            <span className="text-lg leading-none">{currentCountry.flag}</span>
+            <span className="text-[14px] font-medium">{currentCountry.name}</span>
+            <ChevronDown size={16} className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} style={{ color: "var(--on-surface-variant)" }} />
           </button>
           {isDropdownOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-              <div className="absolute top-full left-0 mt-2 w-64 rounded-[16px] shadow-2xl border z-50 p-2" style={{ background: "var(--surface)", borderColor: "var(--outline)" }}>
+              <div className="absolute top-full left-0 mt-2 w-64 rounded-2xl shadow-2xl border z-50 p-2" style={{ background: "var(--surface)", borderColor: "var(--outline)" }}>
                 <div className="p-2 mb-1">
                   <input type="text" placeholder="Search country..." value={countrySearch} onChange={(e) => setCountrySearch(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20"
+                    className="w-full px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20"
                     style={{ background: "var(--bg-secondary)", color: "var(--on-surface)" }} autoFocus />
                 </div>
                 <div className="max-h-64 overflow-y-auto no-scrollbar">
                   {filteredCountries.map((c) => (
                     <button key={c.code} onClick={() => { setSelectedCountry(c.code); setIsDropdownOpen(false); setCountrySearch(""); }}
-                      className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl transition-colors text-sm font-medium ${selectedCountry === c.code ? "text-[#2563EB]" : ""}`}
-                      style={{ background: selectedCountry === c.code ? "rgba(37,99,235,0.05)" : undefined, color: selectedCountry === c.code ? undefined : "var(--on-surface)" }}>
+                      className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl transition-colors text-sm font-medium"
+                      style={{ background: selectedCountry === c.code ? "rgba(37,99,235,0.05)" : undefined, color: selectedCountry === c.code ? "#2563EB" : "var(--on-surface)" }}>
                       <span className="text-lg">{c.flag}</span><span>{c.name}</span>
                     </button>
                   ))}
@@ -138,27 +135,26 @@ export default function FilterBar({
           )}
         </div>
 
-        {/* Search bar with keyboard hint */}
-        <div className="flex-1 max-w-md relative group">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--on-surface-variant)" }} />
+        {/* Search bar */}
+        <div className="flex-1 min-w-[200px] max-w-[320px] relative">
+          <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--on-surface-variant)" }} />
           <input ref={searchRef} type="text" placeholder="Search tools, brands, categories..."
             value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-16 py-2.5 rounded-full border-[1.5px] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 transition-all"
+            className="w-full pl-10 pr-12 py-2.5 rounded-[24px] border-[1.5px] text-[14px] font-medium focus:outline-none focus:ring-2 focus:ring-[#16A34A]/30 focus:border-[#16A34A] transition-all"
             style={{ background: "var(--surface)", borderColor: "var(--outline)", color: "var(--on-surface)" }} />
           {searchQuery ? (
             <button onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition-colors hover:opacity-70"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center hover:opacity-70"
               style={{ background: "var(--bg-secondary)", color: "var(--on-surface-variant)" }}>
               <X size={12} />
             </button>
           ) : (
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-md text-[10px] font-bold border hidden sm:inline-block"
-              style={{ background: "var(--bg-secondary)", borderColor: "var(--outline)", color: "var(--on-surface-variant)" }}>
-              /
-            </kbd>
+              style={{ background: "var(--bg-secondary)", borderColor: "var(--outline)", color: "var(--on-surface-variant)" }}>/</kbd>
           )}
         </div>
 
+        {/* View toggle */}
         <div className="flex items-center gap-1 rounded-full p-1 shrink-0" style={{ background: "var(--bg-secondary)" }}>
           <button onClick={() => setViewMode("grid")} className="w-9 h-9 rounded-full flex items-center justify-center transition-all" aria-label="Grid view"
             style={{ background: viewMode === "grid" ? "var(--surface)" : "transparent", color: viewMode === "grid" ? "var(--primary)" : "var(--on-surface-variant)", boxShadow: viewMode === "grid" ? "0 1px 3px rgba(0,0,0,0.1)" : "none" }}>
@@ -171,31 +167,48 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* Row 2: Special filters + Category pills */}
-      <div className="max-w-7xl mx-auto w-full px-6">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          {/* Special filter pills */}
-          {SPECIAL_FILTERS.map((sf) => (
-            <button key={sf.id} onClick={() => handleSpecialFilter(sf.id)}
-              className={`px-4 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all flex items-center gap-1.5 border ${
-                specialFilter === sf.id ? "text-white shadow-lg" : ""
-              }`}
-              style={specialFilter === sf.id
-                ? { background: sf.color, borderColor: sf.color }
-                : { background: "var(--surface)", borderColor: "var(--outline)", color: "var(--on-surface-variant)" }
-              }>
-              {sf.icon}
-              <span>{sf.label}</span>
-              {sf.id === "saved" && savedCount > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-black"
-                  style={{ background: specialFilter === "saved" ? "rgba(255,255,255,0.25)" : "var(--bg-secondary)" }}>
-                  {savedCount}
-                </span>
-              )}
-            </button>
-          ))}
+      {/* Row 2: Special filters + Category pills with scroll fade */}
+      <div className="responsive-px relative">
+        {/* Left fade */}
+        {canScrollLeft && (
+          <div className="absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none" style={{ background: "linear-gradient(to right, var(--bg), transparent)" }} />
+        )}
+        {/* Right fade */}
+        {canScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none" style={{ background: "linear-gradient(to left, var(--bg), transparent)" }} />
+        )}
 
-          <div className="w-px h-6 mx-1" style={{ background: "var(--outline)" }} />
+        <div ref={scrollRef} className="flex items-center gap-[10px] overflow-x-auto no-scrollbar">
+          {/* Special filter pills */}
+          {SPECIAL_FILTERS.map((sf) => {
+            const isActive = specialFilter === sf.id;
+            return (
+              <button key={sf.id} onClick={() => handleSpecialFilter(sf.id)}
+                className="shrink-0 flex items-center gap-1.5 whitespace-nowrap transition-all"
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: 24,
+                  fontSize: 14,
+                  fontWeight: isActive ? 600 : 500,
+                  background: isActive ? "#1a1a1a" : "var(--surface)",
+                  color: isActive ? "#fff" : "var(--on-surface-variant)",
+                  border: isActive ? "1.5px solid #1a1a1a" : "1.5px solid var(--outline)",
+                  transform: isActive ? "scale(1.05)" : "scale(1)",
+                }}>
+                {sf.icon}
+                <span>{sf.label}</span>
+                {sf.id === "saved" && savedCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                    style={{ background: isActive ? "rgba(255,255,255,0.2)" : "var(--bg-secondary)", color: isActive ? "#fff" : "var(--on-surface-variant)" }}>
+                    {savedCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+
+          {/* Divider */}
+          <div className="w-px h-7 shrink-0 mx-1" style={{ background: "var(--outline)" }} />
 
           {/* Category pills */}
           {CATEGORIES.map((cat) => {
@@ -204,11 +217,18 @@ export default function FilterBar({
             const isActive = !specialFilter && selectedCategories.includes(cat);
             return (
               <button key={cat} onClick={() => handleCategoryToggle(cat)}
-                className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all flex items-center gap-[6px] ${
-                  isActive ? "bg-[#2563EB] text-white shadow-lg shadow-blue-500/20" : ""
-                }`}
-                style={isActive ? undefined : { background: "var(--filter-bg)", color: "var(--on-surface-variant)" }}>
-                {cat === "All" ? cat : (<><span className="text-base">{emoji}</span><span>{name}</span></>)}
+                className="shrink-0 flex items-center gap-[6px] whitespace-nowrap transition-all"
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: 24,
+                  fontSize: 14,
+                  fontWeight: isActive ? 600 : 500,
+                  background: isActive ? "#2563EB" : "var(--filter-bg)",
+                  color: isActive ? "#fff" : "var(--on-surface-variant)",
+                  transform: isActive ? "scale(1.05)" : "scale(1)",
+                  boxShadow: isActive ? "0 4px 12px rgba(37,99,235,0.2)" : "none",
+                }}>
+                {cat === "All" ? "All" : (<><span className="text-[15px]">{emoji}</span><span>{name}</span></>)}
               </button>
             );
           })}
@@ -216,9 +236,9 @@ export default function FilterBar({
       </div>
 
       {/* Row 3: Results count */}
-      <div className="max-w-7xl mx-auto w-full px-6">
-        <div className="px-6 py-3 rounded-2xl flex items-center justify-between" style={{ background: "var(--bg-secondary)" }}>
-          <p className="text-sm font-medium" style={{ color: "var(--on-surface-variant)" }}>
+      <div className="responsive-px">
+        <div className="px-5 py-3 rounded-2xl flex items-center justify-between" style={{ background: "var(--bg-secondary)" }}>
+          <p className="text-[13px] font-medium" style={{ color: "var(--on-surface-variant)" }}>
             Showing <span className="font-bold" style={{ color: "var(--on-surface)" }}><CountUp value={totalCount} /> perks</span>
             {searchQuery && <span> matching "<strong style={{ color: "var(--on-surface)" }}>{searchQuery}</strong>"</span>}
             {specialFilter && <span> · <strong style={{ color: "var(--on-surface)" }}>{SPECIAL_FILTERS.find(s => s.id === specialFilter)?.label}</strong></span>}
@@ -228,9 +248,9 @@ export default function FilterBar({
             </span>
           </p>
           <div className="hidden md:flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--on-surface-variant)" }}>
-            <kbd className="px-1.5 py-0.5 rounded border text-[9px]" style={{ borderColor: "var(--outline)" }}>/</kbd> search
-            <kbd className="px-1.5 py-0.5 rounded border text-[9px]" style={{ borderColor: "var(--outline)" }}>G</kbd> top
-            <kbd className="px-1.5 py-0.5 rounded border text-[9px]" style={{ borderColor: "var(--outline)" }}>Esc</kbd> clear
+            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded border text-[9px]" style={{ borderColor: "var(--outline)" }}>/</kbd> search</span>
+            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded border text-[9px]" style={{ borderColor: "var(--outline)" }}>G</kbd> top</span>
+            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded border text-[9px]" style={{ borderColor: "var(--outline)" }}>Esc</kbd> clear</span>
           </div>
         </div>
       </div>
