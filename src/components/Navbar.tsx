@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { GraduationCap, Moon, Sun } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 
 interface NavbarProps {
-  darkMode: boolean;
-  setDarkMode: (v: boolean) => void;
   onStartHere: () => void;
   onSubmitPerk: () => void;
 }
 
-export default function Navbar({ darkMode, setDarkMode, onStartHere, onSubmitPerk }: NavbarProps) {
+export default function Navbar({ onStartHere, onSubmitPerk }: NavbarProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [scrolled, setScrolled] = useState(false);
 
@@ -62,20 +60,6 @@ export default function Navbar({ darkMode, setDarkMode, onStartHere, onSubmitPer
               style={{ color: "var(--on-surface-variant)" }}
             >
               Submit a Deal
-            </button>
-
-            {/* Dark mode toggle */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-              style={{ background: "var(--bg-secondary)" }}
-              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {darkMode ? (
-                <Sun size={16} style={{ color: "var(--on-surface)" }} />
-              ) : (
-                <Moon size={16} style={{ color: "var(--on-surface-variant)" }} />
-              )}
             </button>
 
             <motion.button

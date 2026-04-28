@@ -141,13 +141,6 @@ function OfferToast({ message, onDone }: { message: string; onDone: () => void }
 const PRELOAD_COUNT = 8;
 
 export default function App() {
-  // ─── Dark mode ───
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("sp_dark") === "true");
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-    localStorage.setItem("sp_dark", String(darkMode));
-  }, [darkMode]);
-
   // ─── Core state ───
   const [selectedCountry, setSelectedCountry] = useState("GLOBAL");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["All"]);
@@ -319,7 +312,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={{ background: "var(--bg)" }}>
-      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} onStartHere={() => setStartHereOpen(true)} onSubmitPerk={() => setSubmitPerkOpen(true)} />
+      <Navbar onStartHere={() => setStartHereOpen(true)} onSubmitPerk={() => setSubmitPerkOpen(true)} />
       <Hero />
       <CommunitySavings />
       <SavingsCalculator />
