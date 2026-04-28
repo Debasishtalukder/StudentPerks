@@ -15,7 +15,8 @@ import CommunitySavings from "./components/CommunitySavings";
 import SocialProof from "./components/SocialProof";
 import CompareBar from "./components/CompareBar";
 import CompareModal from "./components/CompareModal";
-import { PERKS, COUNTRIES } from "./data/perks";
+import { AdvertiseModal, ApiAccessModal, BrandAssetsModal } from "./components/FooterModals";
+import { PERKS, COUNTRIES, CATEGORIES } from "./data/perks";
 import type { Perk } from "./data/perks";
 import { buildTrackedUrl } from "./data/affiliates";
 
@@ -151,6 +152,9 @@ export default function App() {
   const [offerToast, setOfferToast] = useState<string | null>(null);
   const [startHereOpen, setStartHereOpen] = useState(false);
   const [submitPerkOpen, setSubmitPerkOpen] = useState(false);
+  const [advertiseOpen, setAdvertiseOpen] = useState(false);
+  const [apiAccessOpen, setApiAccessOpen] = useState(false);
+  const [brandAssetsOpen, setBrandAssetsOpen] = useState(false);
 
   // ─── Compare tools ───
   const [compareIds, setCompareIds] = useState<string[]>([]);
@@ -310,6 +314,16 @@ export default function App() {
     setOfferToast("Link copied! Share with friends ✓");
   }, []);
 
+  const filterByCategory = useCallback((cat: string) => {
+    const fullCat = CATEGORIES.find((c) => c.includes(cat)) || "All";
+    setSpecialFilter(null);
+    setSelectedCategories([fullCat]);
+    setSearchQuery("");
+    setTimeout(() => {
+      document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, []);
+
   return (
     <div className="min-h-screen transition-colors duration-300" style={{ background: "var(--bg)" }}>
       <Navbar onStartHere={() => setStartHereOpen(true)} onSubmitPerk={() => setSubmitPerkOpen(true)} />
@@ -431,33 +445,34 @@ export default function App() {
               <h4 className="font-fraunces text-xl mb-8 text-white">Categories</h4>
               <ul className="space-y-4 text-sm text-slate-400">
                 {["Dev Tools", "AI Tools", "Design", "Cloud", "Security", "Music", "Streaming"].map((item) => (
-                  <li key={item}><a href="#" className="hover:text-blue-400 transition-colors">{item}</a></li>
+                  <li key={item}><button onClick={() => filterByCategory(item)} className="hover:text-blue-400 transition-colors">{item}</button></li>
                 ))}
               </ul>
             </div>
             <div>
               <h4 className="font-fraunces text-xl mb-8 text-white">Resources</h4>
               <ul className="space-y-4 text-sm text-slate-400">
-                {["Submit a Perk", "Advertise with Us", "API Access", "Brand Assets"].map((item) => (
-                  <li key={item}><a href="#" className="hover:text-blue-400 transition-colors">{item}</a></li>
-                ))}
+                <li><button onClick={() => setSubmitPerkOpen(true)} className="hover:text-blue-400 transition-colors">Submit a Perk</button></li>
+                <li><button onClick={() => setAdvertiseOpen(true)} className="hover:text-blue-400 transition-colors">Advertise with Us</button></li>
+                <li><button onClick={() => setApiAccessOpen(true)} className="hover:text-blue-400 transition-colors">API Access</button></li>
+                <li><button onClick={() => setBrandAssetsOpen(true)} className="hover:text-blue-400 transition-colors">Brand Assets</button></li>
               </ul>
             </div>
             <div>
               <h4 className="font-fraunces text-xl mb-8 text-white">Legal</h4>
               <ul className="space-y-4 text-sm text-slate-400">
-                {["Disclaimer", "Privacy Policy", "Terms"].map((item) => (
-                  <li key={item}><a href="#" className="hover:text-blue-400 transition-colors">{item}</a></li>
-                ))}
+                <li><a href="/disclaimer" className="hover:text-blue-400 transition-colors">Disclaimer</a></li>
+                <li><a href="/privacy-policy" className="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
+                <li><a href="/terms" className="hover:text-blue-400 transition-colors">Terms</a></li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-            <div>© 2025 StudentPerks.fun. All rights reserved.</div>
+            <div>© 2026 StudentPerks.fun. All rights reserved.</div>
             <div className="flex gap-8">
-              <a href="#" className="hover:text-white transition-colors">Twitter</a>
-              <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-              <a href="#" className="hover:text-white transition-colors">Discord</a>
+              <a href="https://twitter.com/studentperksfun" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a>
+              <a href="https://linkedin.com/company/studentperksfun" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn</a>
+              <a href="https://discord.gg/studentperks" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Discord</a>
             </div>
           </div>
         </div>
@@ -468,6 +483,9 @@ export default function App() {
       <CompareModal isOpen={compareModalOpen} onClose={() => setCompareModalOpen(false)} compareIds={compareIds} />
       <StartHereModal isOpen={startHereOpen} onClose={() => setStartHereOpen(false)} />
       <SubmitPerkModal isOpen={submitPerkOpen} onClose={() => setSubmitPerkOpen(false)} onSuccess={() => setOfferToast("✅ Perk submitted! We'll review and add it soon.")} />
+      <AdvertiseModal isOpen={advertiseOpen} onClose={() => setAdvertiseOpen(false)} />
+      <ApiAccessModal isOpen={apiAccessOpen} onClose={() => setApiAccessOpen(false)} />
+      <BrandAssetsModal isOpen={brandAssetsOpen} onClose={() => setBrandAssetsOpen(false)} />
 
       <AnimatePresence>
         {showScrollTop && (
